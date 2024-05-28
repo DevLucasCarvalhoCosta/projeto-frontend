@@ -30,22 +30,35 @@ const LoginPage = () => {
         loginService.login(login, senha).then((response) => {            
             console.log("Sucesso");
             console.log(response.data.token);
-
+    
+            // Armazena o token no localStorage
             localStorage.setItem('TOKEN_APLICACAO_FRONTEND', response.data.token);
-
-            router.push('/');
+    
+            // Redireciona para a página de usuário
+            router.push('/pages/usuario');
+    
+            // Recarrega a página
+            window.location.reload();
+    
         }).catch(() => {
             
+            // Exibe mensagem de erro
             toast.current?.show({
                 severity: 'error',
                 summary: 'Erro!',
                 detail: 'Login ou Senha estão inválidos!'
             });
-
+    
+            // Limpa os campos de login e senha
             setLogin('');
             setSenha('');
+    
+            // Redireciona para a página inicial
+            router.push('/');
         });
     }
+    
+    
 
     return (
         <div className={containerClassName}>
