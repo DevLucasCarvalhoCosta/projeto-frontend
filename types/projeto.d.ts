@@ -4,11 +4,11 @@ declare namespace Projeto {
         nome: string;
         email: string;
         telefone?: string | null;
-        dataNascimento?: string | null;
+        dataNascimento?: Date;
         genero?: 'masculino' | 'feminino' | 'outro' | null;
         endereco?: string | null;
-        cpf?: string | null;
+        cpf?: string | undefined;
         senha: string;
-        cargo: 'vereador' | 'presidente' | 'comissao' | 'procurador' | 'prefeito' | 'assessor'| null;;
+        cargo: 'vereador' | 'presidente' | 'comissao' | 'procurador' | 'prefeito' | 'assessor'| null;
     }
 };

@@ -5,38 +5,47 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
+import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
+import { InputTextarea } from 'primereact/inputtextarea';
 import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
+import { Rating } from 'primereact/rating';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
+import { ProductService } from '../../../../demo/service/ProductService';
+import { Demo } from '@/types';
 import { Projeto } from '@/types';
 import { UsuarioService } from '@/service/usuarioService';
-import { Calendar } from 'primereact/calendar';
+import { error } from 'console';
+import { Calendar, CalendarViewChangeEvent } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import { InputMask } from 'primereact/inputmask';
+import { ChangeEvent } from 'react';
 
+
+/* @todo Used 'as any' for types here. Will fix in next version due to onSelectionChange event type issue. */
 const Crud = () => {
     let usuarioVazio: Projeto.Usuario = {
         id: 0,
         nome: '',
         email: '',
         telefone: '',
-        dataNascimento: '',
+        dataNascimento: undefined, 
         genero: null,
         endereco: '',
-        cpf: '',
+        cpf: undefined,
         senha: '',
         cargo: null,
     };
 
-    const [usuarios, setUsuarios] = useState<Projeto.Usuario[] | null>(null);
+    const [usuarios, setUsuarios] = useState(null);
     const [usuarioDialog, setUsuarioDialog] = useState(false);
     const [deleteUsuarioDialog, setDeleteUsuarioDialog] = useState(false);
     const [deleteUsuariosDialog, setDeleteUsuariosDialog] = useState(false);
     const [usuario, setUsuario] = useState<Projeto.Usuario>(usuarioVazio);
-    const [selectedUsuarios, setSelectedUsuarios] = useState<Projeto.Usuario[] | null>(null);
+    const [selectedUsuarios, setSelectedUsuarios] = useState(null);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const toast = useRef<Toast>(null);
@@ -44,12 +53,13 @@ const Crud = () => {
     const usuarioService = new UsuarioService();
 
     useEffect(() => {
-       usuarioService.listarTodos()
-       .then((response) => {
-        setUsuarios(response.data);
-       }).catch((error) => {
-        console.log(error);
-       })
+        usuarioService.listarTodos()
+            .then((Response) => {
+                console.log(Response.data);
+                setUsuarios(Response.data);
+            }).catch((error) => {
+                console.log(error);
+            });
     }, []);
 
     const openNew = () => {
@@ -74,34 +84,49 @@ const Crud = () => {
     const saveUsuario = () => {
         setSubmitted(true);
 
-        if (usuario.nome && usuario.email && usuario.telefone && usuario.dataNascimento && usuario.cpf && usuario.senha && usuario.cargo) {
-            if (!usuario.id) {
-                usuarioService.inserir(usuario)
-                    .then((response) => {
-                        setUsuarioDialog(false);
-                        setUsuario(usuarioVazio);
-                        if (toast.current) {
-                            toast.current.show({
-                                severity: 'success',
-                                summary: 'Successful',
-                                detail: 'Usuario cadastrado com sucesso',
-                            });
-                        }
-                    }).catch(error => {
-                        console.log(error.data.message);
-                        if (toast.current) {
-                            toast.current.show({
-                                severity: 'error',
-                                summary: 'Erro!',
-                                detail: 'Erro ao Salvar: ' + error.data.message
-                            });
-                        }
-                    });
-            } else {
-                // Lógica para atualizar um usuário existente
-            }
+        if (!usuario.id) {
+            usuarioService.inserir(usuario)
+                .then((response) => {
+                    setUsuarioDialog(false);
+                    setUsuario(usuarioVazio);
+                    if (toast.current) {
+                        toast.current.show({
+                            severity: 'success',
+                            summary: 'Sucesso',
+                            detail: 'Usuário cadastrado com sucesso',
+                        });
+                    }
+                }).catch((error) => {
+                    console.log(error);
+                    if (toast.current) {
+                        toast.current.show({
+                            severity: 'error',
+                            summary: 'Erro!',
+                            detail: 'Erro ao Salvar: ' + error.message
+                        });
+                    }
+                });
+        } else {
+            usuarioService.alterar(usuario)
+            .then((response) => {
+                setUsuarioDialog(false);
+                setUsuario(usuarioVazio);
+                setUsuarios(null);
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Sucesso!',
+                    detail: 'Usuário alterado com sucesso!'
+                });
+            }).catch((error) => {
+                console.log(error.data.message);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Erro!',
+                    detail: 'Erro ao alterar!' + error.data.message
+      })
+                })
         }
-    };
+    }
 
     const editUsuario = (usuario: Projeto.Usuario) => {
         setUsuario({ ...usuario });
@@ -114,7 +139,27 @@ const Crud = () => {
     };
 
     const deleteUsuario = () => {
-        // Implementar a lógica de exclusão de usuário
+        if (usuario.id) {
+            usuarioService.excluir(usuario.id).then((response) => {
+                setUsuario(usuarioVazio);
+                setDeleteUsuarioDialog(false);
+                setUsuarios(null);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Sucesso!',
+                    detail: 'Usuário Deletado com Sucesso!',
+                    life: 3000
+                });
+                window.location.reload();
+            }).catch((error) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Erro!',
+                    detail: 'Erro ao deletar o usuário!',
+                    life: 3000
+                });
+            });
+        }
     };
 
     const exportCSV = () => {
@@ -126,7 +171,16 @@ const Crud = () => {
     };
 
     const deleteSelectedUsuarios = () => {
-        // Implementar a lógica de exclusão de usuários selecionados
+        // let _products = (products as any)?.filter((val: any) => !(selectedProducts as any)?.includes(val));
+        // setProducts(_products);
+        // setDeleteProductsDialog(false);
+        // setSelectedProducts(null);
+        // toast.current?.show({
+        //     severity: 'success',
+        //     summary: 'Successful',
+        //     detail: 'Products Deleted',
+        //     life: 3000
+        // });
     };
 
     const onCargoChange = (e: RadioButtonChangeEvent) => {
@@ -135,17 +189,33 @@ const Crud = () => {
         setUsuario(_usuario);
     };
 
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
-        const val = (e.target && e.target.value) || '';
+    const onInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
+        const val = e.target.value || ''; // Adjusted to use 'e.target.value'
         let _usuario = { ...usuario };
-        _usuario[`${name}`] = val;
+        (_usuario as any)[name] = val;
+    
         setUsuario(_usuario);
     };
-
-    const onCalendarChange = (e: any, name: string) => {
-        const val = e.value || null;
+    const onInpumasktChange = (e: ChangeEvent<HTMLInputElement>, name: string) => {
+        const val = e.target.value || '';
         let _usuario = { ...usuario };
-        _usuario[`${name}`] = val ? (val instanceof Date ? val.toISOString().substring(0, 10) : val) : null;
+        (_usuario as any)[name] = val;
+    
+        setUsuario(_usuario);
+    };
+    const onInpugeneroChange = (e: ChangeEvent<HTMLInputElement>, name: string) => {
+        const val = e.target.value || '';
+        let _usuario = { ...usuario };
+        (_usuario as any)[name] = val;
+    
+        setUsuario(_usuario);
+    };
+    
+    
+    const onDateChange = (e: React.SyntheticEvent) => {
+        const calendarValue = (e.target as HTMLInputElement).value;
+        let _usuario = { ...usuario };
+        _usuario.dataNascimento = new Date(calendarValue.split('/').reverse().join('-')); // Converter dd/mm/yy para yyyy-mm-dd
         setUsuario(_usuario);
     };
 
@@ -154,7 +224,7 @@ const Crud = () => {
             <React.Fragment>
                 <div className="my-2">
                     <Button label="Novo" icon="pi pi-plus" severity="success" className=" mr-2" onClick={openNew} />
-                    <Button label="Excluir" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedUsuarios || !(selectedUsuarios as any).length} />
+                    {/* <Button label="Excluir" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedUsuarios || !(selectedUsuarios as any).length} /> */}
                 </div>
             </React.Fragment>
         );
@@ -252,6 +322,8 @@ const Crud = () => {
         </>
     );
 
+    
+
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -263,7 +335,7 @@ const Crud = () => {
                         ref={dt}
                         value={usuarios}
                         selection={selectedUsuarios}
-                        onSelectionChange={(e) => setSelectedUsuarios(e.value)}
+                        onSelectionChange={(e) => setSelectedUsuarios(e.value as any)}
                         dataKey="id"
                         paginator
                         rows={10}
@@ -299,11 +371,11 @@ const Crud = () => {
                                     'p-invalid': submitted && !usuario.nome
                                 })}
                             />
-                            {submitted && !usuario.nome && <small className="p-invalid">Nome é obrigatório.</small>}
+                            {submitted && !usuario.nome && <small className="p-invalid">Nome e obrigatorio.</small>}
                         </div>
 
                         <div className="field">
-                            <label htmlFor="email">Email</label>
+                            <label htmlFor="nome">Email</label>
                             <InputText
                                 id="email"
                                 value={usuario.email}
@@ -314,54 +386,37 @@ const Crud = () => {
                                     'p-invalid': submitted && !usuario.email
                                 })}
                             />
-                            {submitted && !usuario.email && <small className="p-invalid">Email é obrigatório.</small>}
+                            {submitted && !usuario.email && <small className="p-invalid">Email e obrigatorio.</small>}
                         </div>
 
-                        <div className="field">
-                            <label htmlFor="telefone">Telefone</label>
-                            <InputText
-                                id="telefone"
-                                value={usuario.telefone || ''}
-                                onChange={(e) => onInputChange(e, 'telefone')}
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !usuario.telefone
-                                })}
-                            />
-                            {submitted && !usuario.telefone && <small className="p-invalid">Telefone é obrigatório!</small>}
-                        </div>
-
+                        
                         <div className="field">
                             <label htmlFor="dataNascimento">Data de Nascimento</label>
                             <Calendar
                                 id="dataNascimento"
                                 value={usuario.dataNascimento}
-                                onChange={(e) => onCalendarChange(e, 'dataNascimento')}
-                                required
+                                onChange={(e: any) => onInputChange(e, 'dataNascimento')}
                                 autoFocus
                                 className={classNames({
                                     'p-invalid': submitted && !usuario.dataNascimento
                                 })}
-                                dateFormat="dd/mm/yy" // Define o formato de exibição da data
-                                showIcon // Mostra um ícone para abrir o calendário
-                                monthNavigator // Permite navegar pelos meses
-                                yearNavigator // Permite navegar pelos anos
-                                yearRange="1900:2100" // Define o intervalo de anos disponíveis
+                                dateFormat="dd/mm/yy"
+                                showIcon
+                                monthNavigator
+                                yearNavigator
+                                yearRange="1900:2100"
                             />
-                            {submitted && !usuario.dataNascimento && <small className="p-invalid">Data de Nascimento é obrigatória!</small>}
+                            {submitted && !usuario.dataNascimento && <small className="p-invalid">Data de Nascimento é Obrigatória!</small>}
                         </div>
 
-                        <div className="field">
+
+                    <div className="field">
                             <label htmlFor="genero">Gênero</label>
                             <Dropdown
                                 id="genero"
                                 value={usuario.genero}
-                                options={[
-                                    { label: 'Masculino', value: 'masculino' },
-                                    { label: 'Feminino', value: 'feminino' },
-                                    { label: 'Outro', value: 'outro' }
-                                ]}
-                                onChange={(e) => onInputChange(e, 'genero')}
+                                options={[{ label: 'Masculino', value: 'Masculino' }, { label: 'Feminino', value: 'Feminino' }]}
+                                onChange={(e: any) => onInputChange(e, 'genero')}
                                 placeholder="Selecione o Gênero"
                                 required
                                 autoFocus
@@ -369,44 +424,29 @@ const Crud = () => {
                                     'p-invalid': submitted && !usuario.genero
                                 })}
                             />
-                            {submitted && !usuario.genero && <small className="p-invalid">Gênero é obrigatório!</small>}
-                        </div>
+                            {submitted && !usuario.genero && <small className="p-invalid">Gênero é Obrigatório!</small>}
+                    </div>
 
-                        <div className="
-field">
-                            <label htmlFor="endereco">Endereço</label>
-                            <InputText
-                                id="endereco"
-                                value={usuario.endereco || ''}
-                                onChange={(e) => onInputChange(e, 'endereco')}
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !usuario.endereco
-                                })}
-                            />
-                            {submitted && !usuario.endereco && <small className="p-invalid">Endereço é obrigatório!</small>}
-                        </div>
-
-                        <div className="field">
+                       
+                    <div className="field">
                             <label htmlFor="cpf">CPF</label>
-                            <InputMask
+                            <InputText
                                 id="cpf"
-                                mask="999.999.999-99"
-                                value={usuario.cpf || ''}
+                                value={usuario.cpf}
                                 onChange={(e) => onInputChange(e, 'cpf')}
                                 autoFocus
                                 className={classNames({
-                                    'p-invalid': submitted && !usuario.cpf
+                                    'p-invalid': submitted && ! usuario.cpf
                                 })}
                             />
-                            {submitted && !usuario.cpf && <small className="p-invalid">CPF é obrigatório!</small>}
+                            {submitted && !usuario.cpf && <small className="p-invalid">CPF é Obrigatório!</small>}
                         </div>
 
+
                         <div className="field">
-                            <label htmlFor="senha">Senha</label>
+                            <label htmlFor="nome">Senha</label>
                             <InputText
-                                id="senha"
-                                type="password"
+                                id="Senha"
                                 value={usuario.senha}
                                 onChange={(e) => onInputChange(e, 'senha')}
                                 required
@@ -415,93 +455,64 @@ field">
                                     'p-invalid': submitted && !usuario.senha
                                 })}
                             />
-                            {submitted && !usuario.senha && <small className="p-invalid">Senha é obrigatória!</small>}
+                            {submitted && !usuario.senha && <small className="p-invalid">Senha e obrigatorio.</small>}
                         </div>
 
                         <div className="field">
-                            <label htmlFor="cargo">Cargo</label>
-                            <div className="p-formgroup-inline">
-                                <div className="p-field-radiobutton">
-                                    <RadioButton
-                                        inputId="vereador"
-                                        name="cargo"
-                                        value="vereador"
-                                        onChange={onCargoChange}
-                                        checked={usuario.cargo === 'vereador'}
-                                    />
-                                    <label htmlFor="vereador">Vereador</label>
+                            <label className="mb-3">Cargo</label>
+                            <div className="formgrid grid">
+                                <div className="field-radiobutton col-6">
+                                    <RadioButton inputId="cargo" name="cargo" value="vereador" onChange={onCargoChange} checked={usuario.cargo === 'vereador'} />
+                                    <label htmlFor="category1">Vereador</label>
                                 </div>
-                                <div className="p-field-radiobutton">
-                                    <RadioButton
-                                        inputId="presidente"
-                                        name="cargo"
-                                        value="presidente"
-                                        onChange={onCargoChange}
-                                        checked={usuario.cargo === 'presidente'}
-                                    />
-                                    <label htmlFor="presidente">Presidente</label>
+                                <div className="field-radiobutton col-6">
+                                    <RadioButton inputId="cargo2" name="cargo" value="presidente" onChange={onCargoChange} checked={usuario.cargo === 'presidente'} />
+                                    <label htmlFor="cargo2">Presidente</label>
                                 </div>
-                                <div className="p-field-radiobutton">
-                                    <RadioButton
-                                        inputId="comissao"
-                                        name="cargo"
-                                        value="comissao"
-                                        onChange={onCargoChange}
-                                        checked={usuario.cargo === 'comissao'}
-                                    />
-                                    <label htmlFor="comissao">Comissão</label>
+                                <div className="field-radiobutton col-6">
+                                    <RadioButton inputId="cargo3" name="cargo" value="comissao" onChange={onCargoChange} checked={usuario.cargo === 'comissao'} />
+                                    <label htmlFor="cargo3">Comissao</label>
+                                </div>                            
+                                <div className="field-radiobutton col-6">
+                                    <RadioButton inputId="cargo4" name="cargo" value="procurador" onChange={onCargoChange} checked={usuario.cargo === 'procurador'} />
+                                    <label htmlFor="cargo4">Procurador</label>
                                 </div>
-                                <div className="p-field-radiobutton">
-                                    <RadioButton
-                                        inputId="procurador"
-                                        name="cargo"
-                                        value="procurador"
-                                        onChange={onCargoChange}
-                                        checked={usuario.cargo === 'procurador'}
-                                    />
-                                    <label htmlFor="procurador">Procurador</label>
+                                <div className="field-radiobutton col-6">
+                                    <RadioButton inputId="cargo5" name="cargo" value="prefeito" onChange={onCargoChange} checked={usuario.cargo === 'prefeito'} />
+                                    <label htmlFor="cargo5">Prefeito</label>
                                 </div>
-                                <div className="p-field-radiobutton">
-                                    <RadioButton
-                                        inputId="prefeito"
-                                        name="cargo"
-                                        value="prefeito"
-                                        onChange={onCargoChange}
-                                        checked={usuario.cargo === 'prefeito'}
-                                    />
-                                    <label htmlFor="prefeito">Prefeito</label>
-                                </div>
-                                <div className="p-field-radiobutton">
-                                    <RadioButton
-                                        inputId="assessor"
-                                        name="cargo"
-                                        value="assessor"
-                                        onChange={onCargoChange}
-                                        checked={usuario.cargo === 'assessor'}
-                                    />
-                                    <label htmlFor="assessor">Assessor</label>
+                                <div className="field-radiobutton col-6">
+                                    <RadioButton inputId="cargo6" name="cargo" value="assessor" onChange={onCargoChange} checked={usuario.cargo === 'assessor'} />
+                                    <label htmlFor="cargo6">Assessor</label>
                                 </div>
                             </div>
-                            {submitted && !usuario.cargo && <small className="p-invalid">Cargo é obrigatório!</small>}
                         </div>
-                    </Dialog>
+                        
+                        </Dialog>
+                        
+
 
                     <Dialog visible={deleteUsuarioDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteUsuarioDialogFooter} onHide={hideDeleteUsuarioDialog}>
-                        <div className="confirmation-content">
-                            <i className="pi pi-exclamation-triangle p-mr-3" style={{ fontSize: '2rem' }} />
-                            {usuario && <span>Deseja excluir o usuário <b>{usuario.nome}</b>?</span>}
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {usuario && (
+                                <span>
+                                    Voce realmente deseja Excluir o usuario <b>{usuario.nome}</b>?
+                                </span>
+                            )}
                         </div>
                     </Dialog>
 
-                    <Dialog visible={deleteUsuariosDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteUsuariosDialogFooter} onHide={hideDeleteUsuariosDialog}>
-                        <div className="confirmation-content">
-                            <i className="pi pi-exclamation-triangle p-mr-3" style={{ fontSize: '2rem' }} />
-                            {selectedUsuarios && <span>Deseja excluir os usuarios selecionados?</span>}
+                    <Dialog visible={deleteUsuariosDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteUsuarioDialogFooter} onHide={hideDeleteUsuariosDialog}>
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {usuario && <span>Voce realmente deseja Excluir os usuarios selecionados?</span>}
                         </div>
                     </Dialog>
                 </div>
             </div>
         </div>
+
     );
 };
 
