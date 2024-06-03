@@ -233,10 +233,10 @@ const ProtocolosPage: React.FC = () => {
             <label>
               Status de Votação:
               <select name="statusVotacao" value={editProtocolo?.statusVotacao || 'pendente'} onChange={handleChangeEdit}>
-                <option value="pendente">Pendente</option>
-                <option value="aprovado">Aprovado</option>
-                <option value="reprovado">Reprovado</option>
-                <option value="nao votado">Não Votado</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Aprovado">Aprovado</option>
+                <option value="Reprovado">Reprovado</option>
+                <option value="Não Votado">Não Votado</option>
               </select>
             </label>
             <label>
@@ -251,11 +251,8 @@ const ProtocolosPage: React.FC = () => {
 
       {showPdfModal && (
         <div className="modal">
-          <h2>Visualizar PDF</h2>
-          <object data={selectedPdfPath} type="application/pdf" width="100%" height="500">
-            <p>Seu navegador não suporta visualização de PDF. Por favor, faça o download para visualizá-lo: <a href={selectedPdfPath}>Download PDF</a>.</p>
-          </object>
           <button onClick={handleClosePdfModal}>Fechar</button>
+          <embed src={`http://localhost:3000/uploads/${selectedPdfPath}`} type="application/pdf" width="100%" height="600px" />
         </div>
       )}
     </div>
