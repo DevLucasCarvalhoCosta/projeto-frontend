@@ -11,4 +11,21 @@ declare namespace Projeto {
         senha: string;
         cargo: 'vereador' | 'presidente' | 'comissao' | 'procurador' | 'prefeito' | 'assessor'| null;
     }
+
+    export interface SessaoPlenaria {
+        id: number;
+        data: Date | null;
+        status: string;
+        protocolos: any[]; // Adapte conforme necessário
+    }
+    
+    export interface Protocolo {
+        id: number;
+        numero: number;
+        assunto: string;
+        conteudo: string;
+        dataCriacao: Date;
+        statusVotacao: 'pendente' | 'aprovado' | 'reprovado' | 'nao votado';
+        pdfPath: string;
+    }
 };
