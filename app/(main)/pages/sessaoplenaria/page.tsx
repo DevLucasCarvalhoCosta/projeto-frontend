@@ -21,9 +21,9 @@ const CrudSessaoPlenaria = () => {
         status: 'agendada',
         protocolos: []
     };
-
+s
     const [sessoesPlenarias, setSessoesPlenarias] = useState<Projeto.SessaoPlenaria[] | null>(null);
-    const [protocolos, setProtocolos] = useState([]); // Estado para os protocolos
+    const [protocolos, setProtocolos] = useState<Projeto.Protocolo[]>([]); // Estado para os protocolos
     const [sessaoPlenariaDialog, setSessaoPlenariaDialog] = useState(false);
     const [deleteSessaoPlenariaDialog, setDeleteSessaoPlenariaDialog] = useState(false);
     const [sessaoPlenaria, setSessaoPlenaria] = useState<Projeto.SessaoPlenaria>(sessaoPlenariaVazio);
@@ -216,8 +216,8 @@ const CrudSessaoPlenaria = () => {
     const actionBodyTemplate = (rowData: Projeto.SessaoPlenaria) => {
         return (
             <div className="actions">
-                <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editSessaoPlenaria(rowData)} />
-                <Button icon="pi pi-trash" severity="warning" rounded className="mr-2" onClick={() => confirmDeleteSessaoPlenaria(rowData)} />
+                {/* <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editSessaoPlenaria(rowData)} />
+                <Button icon="pi pi-trash" severity="warning" rounded className="mr-2" onClick={() => confirmDeleteSessaoPlenaria(rowData)} /> */}
             </div>
         );
     };
@@ -241,7 +241,7 @@ const CrudSessaoPlenaria = () => {
 
     const deleteSessaoPlenariaDialogFooter = (
         <>
-            <Button label="Nao" icon="pi pi-times" text onClick={hideDeleteSessaoPlenariaDialog} />
+            <Button label="Não" icon="pi pi-times" text onClick={hideDeleteSessaoPlenariaDialog} />
             <Button label="Sim" icon="pi pi-check" text onClick={deleteSessaoPlenaria} />
         </>
     );
@@ -293,7 +293,7 @@ const CrudSessaoPlenaria = () => {
                                 value={sessaoPlenaria.protocolos} 
                                 options={protocolos} 
                                 onChange={onProtocolosChange} 
-                                optionLabel="nome" // Ajuste para o seu campo de nome do protocolo
+                                optionLabel="assunto"
                                 display="chip"
                                 placeholder="Selecione os Protocolos"
                                 required 
@@ -316,4 +316,4 @@ const CrudSessaoPlenaria = () => {
     );
 }
 
-export default CrudSessaoPlenaria;  
+export default CrudSessaoPlenaria;

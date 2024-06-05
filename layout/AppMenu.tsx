@@ -35,6 +35,8 @@ const AppMenu = () => {
                 // { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', to: '/uikit/charts' },
                 // { label: 'Misc', icon: 'pi pi-fw pi-circle', to: '/uikit/misc' }
                 { label: 'Usuarios', icon: 'pi pi-fw pi-id-card', to: '/pages/usuario' },
+                { label: 'Protocolo', icon: 'pi pi-fw pi-file', to: '/pages/protocolos' },
+                { label: 'Sessao Plenaria', icon: 'pi pi-fw pi-table', to: '/pages/sessaoplenaria' },
                 
                 
             ]

@@ -118,13 +118,15 @@ const Crud = () => {
                     detail: 'Usuário alterado com sucesso!'
                 });
             }).catch((error) => {
-                console.log(error.data.message);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro!',
-                    detail: 'Erro ao alterar!' + error.data.message
-      })
-                })
+    console.log(error); // Log the entire error object to inspect its structure
+    const errorMessage = error.response ? error.response.data.message : 'An error occurred';
+    console.log(errorMessage); // Log the error message
+    toast.current?.show({
+        severity: 'error',
+        summary: 'Erro!',
+        detail: errorMessage
+    });
+});
         }
     }
 
@@ -152,11 +154,13 @@ const Crud = () => {
                 });
                 window.location.reload();
             }).catch((error) => {
+                console.log(error); // Log the entire error object to inspect its structure
+                const errorMessage = error.response ? error.response.data.message : 'An error occurred';
+                console.log(errorMessage); // Log the error message
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Erro!',
-                    detail: 'Erro ao deletar o usuário!',
-                    life: 3000
+                    detail: errorMessage
                 });
             });
         }

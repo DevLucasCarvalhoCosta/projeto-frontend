@@ -6,7 +6,7 @@ const api = axios.create({
 
 export const sessaoPlenariaService = {
     listarTodos: () => api.get('/sessoesPlenarias'),
-    inserir: (sessaoPlenaria: any) => api.post('/sessoesPlenarias', sessaoPlenaria),
+    inserir: (sessaoPlenaria: any) => api.post('/sessoes-plenarias', sessaoPlenaria),
     alterar: (sessaoPlenaria: any) => api.put(`/sessoesPlenarias/${sessaoPlenaria.id}`, sessaoPlenaria),
     excluir: (id: number) => api.delete(`/sessoesPlenarias/${id}`),
     listarProtocolos: () => api.get('/protocolos'),  // Novo método para listar protocolos

@@ -18,9 +18,16 @@ export class UsuarioService {
     }
 
     alterar(objeto: any) {
-        return axiosInstance.put("api/usuarios", objeto); // Corrigido para enviar o objeto como corpo da requisição
+        const { id } = objeto;
+        return axiosInstance.put(`api/usuarios/${id}`, objeto)
+            .then((response) => {
+                return response.data; // Retorna os dados atualizados do usuário
+            })
+            .catch((error) => {
+                throw error.response.data; // Lança o erro para ser tratado no componente
+            });
     }
-
+    
     excluir(id: number) {
         return axiosInstance.delete("api/usuarios/" + id); // Corrigido para adicionar '/' antes do id
     }
