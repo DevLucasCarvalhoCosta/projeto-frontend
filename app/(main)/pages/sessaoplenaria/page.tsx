@@ -24,9 +24,8 @@ const CrudSessaoPlenaria = () => {
         status: 'agendada',
         protocolos: []
     };
-    
+
     const [sessoesPlenarias, setSessoesPlenarias] = useState<Projeto.SessaoPlenaria[] | null>(null);
-    const [protocolos, setProtocolos] = useState<Projeto.Protocolo[]>([]); // Estado para os protocolos
     const [protocolos, setProtocolos] = useState<Projeto.Protocolo[]>([]); // Estado para os protocolos
     const [sessaoPlenariaDialog, setSessaoPlenariaDialog] = useState(false);
     const [deleteSessaoPlenariaDialog, setDeleteSessaoPlenariaDialog] = useState(false);
@@ -231,8 +230,6 @@ const CrudSessaoPlenaria = () => {
             <div className="actions">
                 {/* <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editSessaoPlenaria(rowData)} />
                 <Button icon="pi pi-trash" severity="warning" rounded className="mr-2" onClick={() => confirmDeleteSessaoPlenaria(rowData)} /> */}
-                {/* <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editSessaoPlenaria(rowData)} />
-                <Button icon="pi pi-trash" severity="warning" rounded className="mr-2" onClick={() => confirmDeleteSessaoPlenaria(rowData)} /> */}
             </div>
         );
     };
@@ -263,7 +260,6 @@ const CrudSessaoPlenaria = () => {
 
     const deleteSessaoPlenariaDialogFooter = (
         <>
-            <Button label="Não" icon="pi pi-times" text onClick={hideDeleteSessaoPlenariaDialog} />
             <Button label="Não" icon="pi pi-times" text onClick={hideDeleteSessaoPlenariaDialog} />
             <Button label="Sim" icon="pi pi-check" text onClick={deleteSessaoPlenaria} />
         </>
@@ -338,7 +334,6 @@ const CrudSessaoPlenaria = () => {
                                 value={sessaoPlenaria.protocolos} 
                                 options={protocolos} 
                                 onChange={onProtocolosChange} 
-                                optionLabel="assunto"
                                 optionLabel="assunto"
                                 display="chip"
                                 placeholder="Selecione os Protocolos"
