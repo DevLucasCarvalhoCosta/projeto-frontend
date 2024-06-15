@@ -13,17 +13,20 @@ import { MultiSelect } from 'primereact/multiselect'; // Importação do MultiSe
 import React, { useEffect, useRef, useState } from 'react';
 import { sessaoPlenariaService } from '@/service/sessaoPlenariaService';
 import { Projeto } from '@/types';
+import { useAuth } from '@/service/hook/useAuth';
+
 
 const CrudSessaoPlenaria = () => {
+    const { token } = useAuth();
     let sessaoPlenariaVazio: Projeto.SessaoPlenaria = {
         id: 0,
         data: null,
         status: 'agendada',
         protocolos: []
     };
-
+    
     const [sessoesPlenarias, setSessoesPlenarias] = useState<Projeto.SessaoPlenaria[] | null>(null);
-    const [protocolos, setProtocolos] = useState([]); // Estado para os protocolos
+    const [protocolos, setProtocolos] = useState<Projeto.Protocolo[]>([]); // Estado para os protocolos
     const [sessaoPlenariaDialog, setSessaoPlenariaDialog] = useState(false);
     const [deleteSessaoPlenariaDialog, setDeleteSessaoPlenariaDialog] = useState(false);
     const [sessaoPlenaria, setSessaoPlenaria] = useState<Projeto.SessaoPlenaria>(sessaoPlenariaVazio);
@@ -34,20 +37,27 @@ const CrudSessaoPlenaria = () => {
     const dt = useRef<DataTable<any>>(null);
 
     useEffect(() => {
-        sessaoPlenariaService.listarTodos()
-            .then((response) => {
-                setSessoesPlenarias(response.data);
-            }).catch((error) => {
-                console.log(error);
-            });
+        if (!token) {
+            // Lidar com a ausência de token aqui, talvez redirecionando para a página de login
+            return;
+        }
+
+
+        sessaoPlenariaService.listarTodos(token)
+        .then((response) => {
+            setSessoesPlenarias(response.data);
+        }).catch((error) => {
+            console.log(error);
+        });
         
-        sessaoPlenariaService.listarProtocolos()  // Carregar protocolos disponíveis
-            .then((response) => {
-                setProtocolos(response.data);
-            }).catch((error) => {
-                console.log(error);
-            });
-    }, []);
+        sessaoPlenariaService.listarProtocolos(token)
+        .then((response) => {
+            setProtocolos(response.data);
+        }).catch((error) => {
+            console.log(error);
+        });
+}, [token]);
+
 
     const openNew = () => {
         setSessaoPlenaria(sessaoPlenariaVazio);
@@ -68,7 +78,7 @@ const CrudSessaoPlenaria = () => {
         setSubmitted(true);
 
         if (!sessaoPlenaria.id) {
-            sessaoPlenariaService.inserir(sessaoPlenaria)
+            sessaoPlenariaService.inserir(sessaoPlenaria, token!) // Passar o token como argumento
                 .then((response) => {
                     setSessaoPlenariaDialog(false);
                     setSessaoPlenaria(sessaoPlenariaVazio);
@@ -79,7 +89,7 @@ const CrudSessaoPlenaria = () => {
                     });
                     window.location.reload();
                 }).catch((error) => {
-                    console.log(error);
+                    console.error(error); // Alterado de console.log para console.error
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
@@ -87,27 +97,27 @@ const CrudSessaoPlenaria = () => {
                     });
                 });
         } else {
-            sessaoPlenariaService.alterar(sessaoPlenaria)
-            .then((response) => {
-                setSessaoPlenariaDialog(false);
-                setSessaoPlenaria(sessaoPlenariaVazio);
-                setSessoesPlenarias(null);
-                toast.current?.show({
-                    severity: 'info',
-                    summary: 'Sucesso!',
-                    detail: 'Sessão Plenária alterada com sucesso!'
-                });
-            }).catch((error) => {
-                console.log(error.data.message);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro!',
-                    detail: 'Erro ao alterar!' + error.data.message
-                });
-            })
+            sessaoPlenariaService.alterar(sessaoPlenaria, token!) // Passar o token como argumento
+                .then((response) => {
+                    setSessaoPlenariaDialog(false);
+                    setSessaoPlenaria(sessaoPlenariaVazio);
+                    setSessoesPlenarias(null);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Sucesso!',
+                        detail: 'Sessão Plenária alterada com sucesso!'
+                    });
+                }).catch((error) => {
+                    console.error(error); // Alterado de console.log para console.error
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Erro!',
+                        detail: 'Erro ao alterar!' + error.message
+                    });
+                })
         }
     }
-
+    
     const editSessaoPlenaria = (sessaoPlenaria: Projeto.SessaoPlenaria) => {
         setSessaoPlenaria({ ...sessaoPlenaria });
         setSessaoPlenariaDialog(true);
@@ -119,26 +129,28 @@ const CrudSessaoPlenaria = () => {
     };
 
     const deleteSessaoPlenaria = () => {
+        
         if (sessaoPlenaria.id) {
-            sessaoPlenariaService.excluir(sessaoPlenaria.id).then((response) => {
-                setSessaoPlenaria(sessaoPlenariaVazio);
-                setDeleteSessaoPlenariaDialog(false);
-                setSessoesPlenarias(null);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Sucesso!',
-                    detail: 'Sessão Plenária deletada com sucesso!',
-                    life: 3000
+            sessaoPlenariaService.excluir(sessaoPlenaria.id, token!) // Passar o token como segundo argumento
+                .then((response) => {
+                    setSessaoPlenaria(sessaoPlenariaVazio);
+                    setDeleteSessaoPlenariaDialog(false);
+                    setSessoesPlenarias(null);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Sucesso!',
+                        detail: 'Sessão Plenária deletada com sucesso!',
+                        life: 3000
+                    });
+                    window.location.reload();
+                }).catch((error) => {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Erro!',
+                        detail: 'Erro ao deletar a sessão plenária!',
+                        life: 3000
+                    });
                 });
-                window.location.reload();
-            }).catch((error) => {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro!',
-                    detail: 'Erro ao deletar a sessão plenária!',
-                    life: 3000
-                });
-            });
         }
     };
 
@@ -216,8 +228,8 @@ const CrudSessaoPlenaria = () => {
     const actionBodyTemplate = (rowData: Projeto.SessaoPlenaria) => {
         return (
             <div className="actions">
-                <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editSessaoPlenaria(rowData)} />
-                <Button icon="pi pi-trash" severity="warning" rounded className="mr-2" onClick={() => confirmDeleteSessaoPlenaria(rowData)} />
+                {/* <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editSessaoPlenaria(rowData)} />
+                <Button icon="pi pi-trash" severity="warning" rounded className="mr-2" onClick={() => confirmDeleteSessaoPlenaria(rowData)} /> */}
             </div>
         );
     };
@@ -239,12 +251,39 @@ const CrudSessaoPlenaria = () => {
         </>
     );
 
+    const visualizarPDF = (protocoloId: number) => {
+        // Aqui você pode implementar a lógica para obter o link do PDF com base no ID do protocolo
+        const linkPDF = `URL_DO_SERVIDOR_PARA_O_PDF/${protocoloId}`;
+        window.open(linkPDF, '_blank');
+    };
+    
+
     const deleteSessaoPlenariaDialogFooter = (
         <>
-            <Button label="Nao" icon="pi pi-times" text onClick={hideDeleteSessaoPlenariaDialog} />
+            <Button label="Não" icon="pi pi-times" text onClick={hideDeleteSessaoPlenariaDialog} />
             <Button label="Sim" icon="pi pi-check" text onClick={deleteSessaoPlenaria} />
         </>
     );
+    
+    const protocolosBodyTemplate = (rowData: Projeto.SessaoPlenaria) => {
+        return (
+            <>
+                <span className="p-column-title">Protocolos</span>
+                {rowData.protocolos && rowData.protocolos.length > 0 ? (
+                    rowData.protocolos.map((protocolo, index) => (
+                        <div key={index}>
+                            <span>{protocolo.assunto}</span>
+                            <Button icon="pi pi-file-pdf" onClick={() => visualizarPDF(protocolo.id)} className="p-button-info p-button-rounded p-button-text" />
+                        </div>
+                    ))
+                ) : (
+                    <span>Nenhum protocolo associado</span>
+                )}
+            </>
+        );
+    };
+    
+    
 
     return (
         <div className="grid crud-demo">
@@ -271,6 +310,8 @@ const CrudSessaoPlenaria = () => {
                         <Column field="data" header="Data" body={dataBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="status" header="Status" body={statusBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column header="Protocolos" headerStyle={{ minWidth: '15rem' }} body={protocolosBodyTemplate}></Column>
+
                     </DataTable>
 
                     <Dialog visible={sessaoPlenariaDialog} style={{ width: '450px' }} header="Sessão Plenária" modal className="p-fluid" footer={sessaoPlenariaDialogFooter} onHide={hideDialog}>
@@ -293,7 +334,7 @@ const CrudSessaoPlenaria = () => {
                                 value={sessaoPlenaria.protocolos} 
                                 options={protocolos} 
                                 onChange={onProtocolosChange} 
-                                optionLabel="nome" // Ajuste para o seu campo de nome do protocolo
+                                optionLabel="assunto"
                                 display="chip"
                                 placeholder="Selecione os Protocolos"
                                 required 
@@ -316,4 +357,4 @@ const CrudSessaoPlenaria = () => {
     );
 }
 
-export default CrudSessaoPlenaria;  
+export default CrudSessaoPlenaria;

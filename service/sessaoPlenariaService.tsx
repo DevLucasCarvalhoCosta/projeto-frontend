@@ -5,9 +5,9 @@ const api = axios.create({
 });
 
 export const sessaoPlenariaService = {
-    listarTodos: () => api.get('/sessoesPlenarias'),
-    inserir: (sessaoPlenaria: any) => api.post('/sessoesPlenarias', sessaoPlenaria),
-    alterar: (sessaoPlenaria: any) => api.put(`/sessoesPlenarias/${sessaoPlenaria.id}`, sessaoPlenaria),
-    excluir: (id: number) => api.delete(`/sessoesPlenarias/${id}`),
-    listarProtocolos: () => api.get('/protocolos'),  // Novo método para listar protocolos
+    listarTodos: (token: string) => api.get('/sessoesPlenarias', { headers: { Authorization: `Bearer ${token}` } }),
+    inserir: (sessaoPlenaria: any, token: string) => api.post('/sessoes-plenarias', sessaoPlenaria, { headers: { Authorization: `Bearer ${token}` } }),
+    alterar: (sessaoPlenaria: any, token: string) => api.put(`/sessoesPlenarias/${sessaoPlenaria.id}`, sessaoPlenaria, { headers: { Authorization: `Bearer ${token}` } }),
+    excluir: (id: number, token: string) => api.delete(`/sessoesPlenarias/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+    listarProtocolos: (token: string) => api.get('/protocolos', { headers: { Authorization: `Bearer ${token}` } }),
 };

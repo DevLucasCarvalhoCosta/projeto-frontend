@@ -1,6 +1,7 @@
-// protocolo.d.ts
-declare namespace Protocolos {
-    interface Protocolo {
+// c:/Users/Maquina12/Desktop/Faculdade/projeto-frontend/types/Protocolo.d.ts
+
+declare module 'Protocolo' {
+    export interface Protocolo {
       id: number;
       numero: string;
       assunto: string;
@@ -10,3 +11,4 @@ declare namespace Protocolos {
       pdfPath: string;
     }
   }
+  

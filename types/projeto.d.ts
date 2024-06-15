@@ -9,7 +9,8 @@ declare namespace Projeto {
         endereco?: string | null;
         cpf?: string | undefined;
         senha: string;
-        cargo: 'vereador' | 'presidente' | 'comissao' | 'procurador' | 'prefeito' | 'assessor'| null;
+        cargo: 'vereador' | 'presidente' | 'comissao' | 'procurador' | 'prefeito' | 'assessor' | null;
+        perfilId: number;
     }
 
     export interface SessaoPlenaria {
@@ -21,11 +22,11 @@ declare namespace Projeto {
     
     export interface Protocolo {
         id: number;
-        numero: number;
+        numero: string;
         assunto: string;
         conteudo: string;
-        dataCriacao: Date;
-        statusVotacao: 'pendente' | 'aprovado' | 'reprovado' | 'nao votado';
+        dataCriacao?: string;
+        statusVotacao: string;
         pdfPath: string;
-    }
+      }
 };
